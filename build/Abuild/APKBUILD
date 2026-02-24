@@ -1,0 +1,78 @@
+# Alpine-Contributor: Sergei Lukin <sergej.lukin@gmail.com>
+# Alpine-Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Felix Xing <fxing@qnx.com>
+pkgname=libsndfile
+pkgver=1.2.2
+pkgrel=0
+pkgdesc="C library for reading and writing files containing sampled sound"
+url="https://libsndfile.github.io/libsndfile/"
+arch="all"
+license="LGPL-2.1-or-later"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc"
+depends="
+    lame-libs
+    libflac
+    libogg
+    libvorbis
+    mpg123-libs
+    opus
+    qnx-alsa
+    "
+depends_dev="
+    flac-dev
+    mpg123-dev
+    libogg-dev
+    libvorbis-dev
+    opus-dev
+    "
+makedepends="
+    $depends_dev
+    cmake
+    lame-dev
+    python3
+    sqlite-dev
+    ninja
+    clang
+    libc++-dev
+    qnx-alsa-dev
+    "
+source="https://github.com/libsndfile/libsndfile/releases/download/$pkgver/libsndfile-$pkgver.tar.xz
+    CVE-2024-50612.patch
+    001-add-printf-null-for-testing.patch
+    "
+
+build() {
+    export CC=clang
+    export CXX=clang++
+
+    CFLAGS="$CFLAGS" \
+    cmake3.5 -B build-shared -G Ninja \
+        -DBUILD_SHARED_LIBS=ON \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_TESTING=OFF
+    cmake --build build-shared
+
+    cmake3.5 -B build-static -G Ninja \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_TESTING="$(want_check && echo ON || echo OFF)"
+    cmake --build build-static
+}
+
+check() {
+    cd build-shared
+    ctest
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build-static
+    DESTDIR="$pkgdir" cmake --install build-shared
+}
+
+sha512sums="
+a6e3ea3ac5d91befaa99f6a31a3fac44e7b7c11f1de4698167317a461d5a19a2651d47486a920b34400f18367b4f6173bf0c1c9ba80eb682cece1b5beee352a0  libsndfile-1.2.2.tar.xz
+ea1c0ec736845d7c27e35bfd79610e9f4ffb094841078c66c6610f826fee7b435f02a4ed02fec1a950360369a789410b1986181eb3bf3264cf041d2c8b963928  CVE-2024-50612.patch
+9efd47390727d4a79d44644eb0543b268a303fb2013e44c4f5ee0f1d80baf0d91cb2068c55a5dbcc5efc998780e9deb9a48ce417b14e5adb3021f0a7d8b336e8  001-add-printf-null-for-testing.patch
+"

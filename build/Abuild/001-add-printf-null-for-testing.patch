@@ -1,0 +1,12 @@
+diff --git a/tests/format_check_test.c b/tests/format_check_test.c
+index 2e76679..2689315 100644
+--- a/tests/format_check_test.c
++++ b/tests/format_check_test.c
+@@ -31,6 +31,7 @@
+ #include "sndfile.h"
+ #include "utils.h"
+ 
++const char* output_for_percent_s_NULL = "(null)";
+ static void format_error_test (void) ;
+ static void format_combo_test (void) ;
+ 
